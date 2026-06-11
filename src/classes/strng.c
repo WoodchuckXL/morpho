@@ -166,23 +166,28 @@ bool string_tonumber(objectstring *string, value *out) {
 
 /** Count number of characters in a string */
 int string_countchars(objectstring *s) {
-    int n=0;
-    for (char *c = s->string; *c!='\0'; ) {
-        c+=morpho_utf8numberofbytes(c);
-        n++;
-    }
-    return n;
+    return s->length;
+
+    // int n=0;
+    // for (char *c = s->string; *c!='\0'; ) {
+    //     c+=morpho_utf8numberofbytes(c);
+    //     n++;
+    // }
+    // return n;
 }
 
 /** Get a pointer to the i'th character of a string */
 char *string_index(objectstring *s, int i) {
-    int n=0;
-    for (char *c = s->string; *c!='\0'; ) {
-        if (i==n) return (char *) c;
-        c+=morpho_utf8numberofbytes(c);
-        n++;
-    }
-    return NULL;
+    if (i<0 || i>=s->length) return NULL;
+    return &s->string[i];
+    
+    // int n=0;
+    // for (char *c = s->string; *c!='\0'; ) {
+    //     if (i==n) return (char *) c;
+    //     c+=morpho_utf8numberofbytes(c);
+    //     n++;
+    // }
+    // return NULL;
 }
 
 /* **********************************************************************
@@ -216,6 +221,20 @@ value String_clone(vm *v, int nargs, value *args) {
     value out = object_stringfromcstring(slf->string, slf->length);
     if (MORPHO_ISNIL(out)) morpho_runtimeerror(v, ERROR_ALLOCATIONFAILED);
     morpho_bindobjects(v, 1, &out);
+    return out;
+}
+
+/** Gets a specified character from a string */
+value String_getindex(vm *v, int nargs, value *args) {
+    objectstring *slf = MORPHO_GETSTRING(MORPHO_SELF(args));
+    value out=MORPHO_NIL;
+    int n=MORPHO_GETINTEGERVALUE(MORPHO_GETARG(args, 0));
+
+    char *c = string_index(slf, n);
+    if (c) {
+        out=object_stringfromcstring(c, morpho_utf8numberofbytes(c));
+        morpho_bindobjects(v, 1, &out);
+    } else morpho_runtimeerror(v, VM_OUTOFBOUNDS);
     return out;
 }
 
@@ -288,16 +307,38 @@ value String_split(vm *v, int nargs, value *args) {
     return out;
 }
 
+/** Gets a substring of the string */
+value String_substring(vm *v, int nargs, value *args) {
+    objectstring *slf = MORPHO_GETSTRING(MORPHO_SELF(args));
+    value out=MORPHO_NIL;
+    int begin=MORPHO_GETINTEGERVALUE(MORPHO_GETARG(args, 0));
+    int end=MORPHO_GETINTEGERVALUE(MORPHO_GETARG(args, 1));
+
+    if (end<0 || (begin>=slf->length && begin>0) || end-begin<0) {
+        out=MORPHO_OBJECT(object_stringwithsize(0));
+    }else {
+        begin=(begin<0) ? 0 : begin;
+        end=(end>slf->length) ? slf->length : end;
+        char *cstr = &slf->string[begin];
+
+        out=object_stringfromcstring(cstr, morpho_utf8numberofbytes(cstr) * end-begin);
+    }
+    morpho_bindobjects(v, 1, &out);
+
+    return out;
+}
+
 MORPHO_BEGINCLASS(String)
 MORPHO_METHOD_SIGNATURE(MORPHO_COUNT_METHOD, "Int ()", String_count, MORPHO_FN_PUREFN),
 MORPHO_METHOD_SIGNATURE(MORPHO_PRINT_METHOD, "String ()", String_print, MORPHO_FN_IO),
 MORPHO_METHOD_SIGNATURE(MORPHO_CLONE_METHOD, "String ()", String_clone, MORPHO_FN_PUREFN|MORPHO_FN_ALLOCATES),
-MORPHO_METHOD_SIGNATURE(MORPHO_GETINDEX_METHOD, "(Int)", String_enumerate, MORPHO_FN_THROWS),
+MORPHO_METHOD_SIGNATURE(MORPHO_GETINDEX_METHOD, "String (Int)", String_getindex, MORPHO_FN_THROWS),
 MORPHO_METHOD_SIGNATURE(MORPHO_GETINDEX_METHOD, "Nil (...)", String_enumerate__err, MORPHO_FN_THROWS),
 MORPHO_METHOD_SIGNATURE(MORPHO_ENUMERATE_METHOD, "(Int)", String_enumerate, MORPHO_FN_THROWS),
 MORPHO_METHOD_SIGNATURE(MORPHO_ENUMERATE_METHOD, "Nil (...)", String_enumerate__err, MORPHO_FN_THROWS),
 MORPHO_METHOD_SIGNATURE(STRING_ISNUMBER_METHOD, "Bool ()", String_isnumber, MORPHO_FN_PUREFN),
-MORPHO_METHOD_SIGNATURE(STRING_SPLIT_METHOD, "List (String)", String_split, MORPHO_FN_PUREFN|MORPHO_FN_ALLOCATES)
+MORPHO_METHOD_SIGNATURE(STRING_SPLIT_METHOD, "List (String)", String_split, MORPHO_FN_PUREFN|MORPHO_FN_ALLOCATES),
+MORPHO_METHOD_SIGNATURE(STRING_SUBSTRING_METHOD, "String (Int, Int)", String_substring, MORPHO_FN_PUREFN|MORPHO_FN_ALLOCATES)
 MORPHO_ENDCLASS
 
 /* **********************************************************************
