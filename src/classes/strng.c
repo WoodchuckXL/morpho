@@ -166,28 +166,24 @@ bool string_tonumber(objectstring *string, value *out) {
 
 /** Count number of characters in a string */
 int string_countchars(objectstring *s) {
-    return s->length;
-
-    // int n=0;
-    // for (char *c = s->string; *c!='\0'; ) {
-    //     c+=morpho_utf8numberofbytes(c);
-    //     n++;
-    // }
-    // return n;
+    int n=0;
+    for (char *c = s->string; *c!='\0'; ) {
+        c+=morpho_utf8numberofbytes(c);
+        n++;
+    }
+    return n;
 }
 
 /** Get a pointer to the i'th character of a string */
 char *string_index(objectstring *s, int i) {
-    if (i<0 || i>=s->length) return NULL;
-    return &s->string[i];
-    
-    // int n=0;
-    // for (char *c = s->string; *c!='\0'; ) {
-    //     if (i==n) return (char *) c;
-    //     c+=morpho_utf8numberofbytes(c);
-    //     n++;
-    // }
-    // return NULL;
+    if (i<0) return NULL;
+    int n=0;
+    for (char *c = s->string; *c!='\0'; ) {
+        if (i==n) return (char *) c;
+        c+=morpho_utf8numberofbytes(c);
+        n++;
+    }
+    return NULL;
 }
 
 /* **********************************************************************
