@@ -1308,14 +1308,17 @@ static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *a
                 return metafunction_resolveslow(fn, nargs, args, err, out);
             case MFOP_RESOLVE: {
                 pc++; *out=fn->fns.data[instructions[pc]];
-                return true;
+                // Ensure no extra arguments were provided
+                if (MORPHO_GETFUNCTION(*out)->sig.types.count < nargs && !MORPHO_GETFUNCTION(*out)->sig.varg) {
+                    error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
+                } else return true;
             }
             case MFOP_FAIL:
                 error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
             case MFOP_GETUID: {
                 int arg = instructions[++pc];
                 value type;
-                if (value_type(args[arg], &type) && MORPHO_ISCLASS(type)) {
+                if (arg < nargs && value_type(args[arg], &type) && MORPHO_ISCLASS(type)) {
                     reg = MORPHO_GETCLASS(type)->uid;
                     break;
                 }

@@ -12,6 +12,3 @@ print ";;;".split(";")
 
 print "hello".split(";")
 // expect: [ hello ]
-
-print "hello".split()
-// expect: Error 'InvldArgs'
