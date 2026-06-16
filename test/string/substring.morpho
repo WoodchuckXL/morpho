@@ -1,0 +1,13 @@
+print "Hello World"
+// expect: Hello World
+
+var str = "Hi Hi Hello"
+
+print str.substring(0,-4)
+// expect: 
+print str.substring(0,4)
+// expect: Hi H
+print str.substring(0,20)
+// expect: Hi Hi Hello
+print str.substring(-2,5)
+// expect: Hi Hi

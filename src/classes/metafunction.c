@@ -1303,23 +1303,19 @@ static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *a
     int reg = nargs; // Single register initialized with nargs
     
     while (true) {
-        // printf("instr: %d | ", instructions[pc]);
         switch (instructions[pc]) {
             case MFOP_SLOW:
                 return metafunction_resolveslow(fn, nargs, args, err, out);
             case MFOP_RESOLVE: {
                 *out=fn->fns.data[instructions[++pc]];
                 // Ensure no extra arguments were provided
-                if (MORPHO_ISBUILTINFUNCTION(*out)) {
-                    objectbuiltinfunction* cfn = MORPHO_GETBUILTINFUNCTION(*out);
-                    if (cfn->sig.types.count < nargs && !cfn->sig.varg) {
-                        error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
-                    }
-                } else if (MORPHO_ISFUNCTION(*out)) {
-                    objectfunction* cfn = MORPHO_GETFUNCTION(*out);
-                    if (cfn->sig.types.count < nargs && !cfn->sig.varg) {
-                        error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
-                    }
+                signature *sig = NULL;
+                if (MORPHO_ISBUILTINFUNCTION(*out))
+                    sig = &MORPHO_GETBUILTINFUNCTION(*out)->sig;
+                else if (MORPHO_ISFUNCTION(*out))
+                    sig = &MORPHO_GETFUNCTION(*out)->sig;
+                if (sig && sig->types.count < nargs && !sig->varg) {
+                    error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
                 }
                 return true;
             }
