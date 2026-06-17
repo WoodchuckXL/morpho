@@ -312,7 +312,7 @@ value String_substring(vm *v, int nargs, value *args) {
 
     if (end<0 || (begin>=slf->length && begin>0) || end-begin<0) {
         out=MORPHO_OBJECT(object_stringwithsize(0));
-    }else {
+    } else {
         begin=(begin<0) ? 0 : begin;
         end=(end>slf->length) ? slf->length : end;
         char *cstr = &slf->string[begin];

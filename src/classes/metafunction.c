@@ -1295,10 +1295,10 @@ void metafunction_disassemble(objectmetafunction *fn) {
  * -------------------------- */
 
 /** Execute the new resolver VM. */
-static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *args, error *err, value *out) {
+static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *args, error *err, value *out) {    
     mfinstruction *instructions = fn->resolver.data;
     if (!instructions) return metafunction_resolveslow(fn, nargs, args, err, out);
-    
+
     mfindx pc = fn->entry;
     int reg = nargs; // Single register initialized with nargs
     
@@ -1308,15 +1308,6 @@ static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *a
                 return metafunction_resolveslow(fn, nargs, args, err, out);
             case MFOP_RESOLVE: {
                 *out=fn->fns.data[instructions[++pc]];
-                // Ensure no extra arguments were provided
-                signature *sig = NULL;
-                if (MORPHO_ISBUILTINFUNCTION(*out))
-                    sig = &MORPHO_GETBUILTINFUNCTION(*out)->sig;
-                else if (MORPHO_ISFUNCTION(*out))
-                    sig = &MORPHO_GETFUNCTION(*out)->sig;
-                if (sig && sig->types.count < nargs && !sig->varg) {
-                    error_writewithid(err, VM_MLTPLDSPTCHFLD); return false;
-                }
                 return true;
             }
             case MFOP_FAIL:
@@ -1324,7 +1315,7 @@ static bool metafunction_runresolver(objectmetafunction *fn, int nargs, value *a
             case MFOP_GETUID: {
                 int arg = instructions[++pc];
                 value type;
-                if (arg < nargs && value_type(args[arg], &type) && MORPHO_ISCLASS(type)) {
+                if (value_type(args[arg], &type) && MORPHO_ISCLASS(type)) {
                     reg = MORPHO_GETCLASS(type)->uid;
                     break;
                 }
