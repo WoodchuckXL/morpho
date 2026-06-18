@@ -1175,6 +1175,14 @@ static bool mfcompiler_emitresolver(mfcompiler *compiler, int nresolutions, mfco
         exactpath.knownarity = resolutions[0].nparams;
         exactpath.aritychecked = true;
         path = &exactpath;
+
+        // Add a sparse to verify that narg matches the known arity
+        mfindx deflt;
+        mfcompiler_emitfail(compiler, &deflt);
+        mfcompilersparseentry correctarity;
+        correctarity.value = path->knownarity;
+        ERR_CHECK_RETURN(mfcompiler_emitresolver(compiler, nresolutions, resolutions, path, &correctarity.target));
+        return mfcompiler_emitsparse(compiler, 1, &correctarity, deflt, entry);
     }
 
     /* For exact arity without typed params, emit the lone fixed-arity winner. */
