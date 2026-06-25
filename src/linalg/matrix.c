@@ -858,9 +858,7 @@ value matrix_constructor__err(vm *v, int nargs, value *args) {
 }
 
 /** Creates an identity matrix */
-value matrix_identityconstructor(vm *v, int nargs, value *args) {
-    if (nargs!=1) { morpho_runtimeerror(v, MATRIX_IDENTCONSTRUCTOR); return MORPHO_NIL; }
-    
+value matrix_identityconstructor(vm *v, int nargs, value *args) {    
     MatrixIdx_t n = MORPHO_GETINTEGERVALUE(MORPHO_GETARG(args, 0));
 
     objectmatrix *new = matrix_new(n,n,false);
@@ -1663,7 +1661,6 @@ void matrix_initialize(void) {
     morpho_addfunction(MATRIX_IDENTITYCONSTRUCTOR, "Matrix (Int)", matrix_identityconstructor, MORPHO_FN_CONSTRUCTOR, NULL);
     
     morpho_defineerror(MATRIX_CONSTRUCTOR,             ERROR_HALT, MATRIX_CONSTRUCTOR_MSG);
-    morpho_defineerror(MATRIX_IDENTCONSTRUCTOR,        ERROR_HALT, MATRIX_IDENTCONSTRUCTOR_MSG);
     
     complexmatrix_initialize();
 }
